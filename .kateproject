@@ -1,0 +1,10 @@
+{
+  "name": "Buitre",
+  "files": [
+    {
+      "directory": ".",
+      "git": 1,
+      "recursive": 1
+    }
+  ]
+}
