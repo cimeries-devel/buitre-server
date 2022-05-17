@@ -1,4 +1,5 @@
 from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 from apps.store.models import Color
 from apps.store.models import Sex
 from apps.store.models import Size
@@ -8,7 +9,10 @@ from apps.store.models import Product
 from apps.store.models import Company
 from apps.store.models import Branch
 from apps.store.models import Stock
+from apps.store.models import Transfer
+from apps.store.models import DetailTransfer
 from apps.users.models import User
+from apps.users.models import Access
 
 
 class ColorSerializers(ModelSerializer):
@@ -65,9 +69,47 @@ class StockSerializers(ModelSerializer):
         fields = '__all__'
 
 
+class DetailTransferSerializers(ModelSerializer):
+    product_name = serializers.ReadOnlyField(source='product.name')
+
+    class Meta:
+        model = DetailTransfer
+        fields = ('transfer',
+                  'product',
+                  'quantity',
+                  'product_name')
+
+
+class TransferSerializers(ModelSerializer):
+    details = DetailTransferSerializers(source='detailtransfer_set', many=True)
+
+    class Meta:
+        model = Transfer
+        fields = ('id',
+                  'branch_from',
+                  'branch_to',
+                  'description',
+                  'details')
+
+
 class UserSerializers(ModelSerializer):
     class Meta:
         model = User
         fields = ('id',
                   'email',
-                  'username')
+                  'password',
+                  'last_login',
+                  'username',
+                  'first_name',
+                  'last_name',
+                  'phone',
+                  'is_active',
+                  'is_staff',
+                  'level',
+                  'access')
+
+
+class AccessSerializers(ModelSerializer):
+    class Meta:
+        model = Access
+        fields = '__all__'

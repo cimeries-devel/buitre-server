@@ -1,45 +1,53 @@
 from django.urls import path
-from .views import ColorListAPIView
+from .views import ColorListCreateAPIView
 from .views import ColorRetrieveUpdateDestroyAPIView
-from .views import SexListAPIView
+from .views import SexListCreateAPIView
 from .views import SexRetrieveUpdateDestroyAPIView
-from .views import SizeListAPIView
+from .views import SizeListCreateAPIView
 from .views import SizeRetrieveUpdateDestroyAPIView
-from .views import CategoryListAPIView
+from .views import CategoryListCreateAPIView
 from .views import CategoryRetrieveUpdateDestroyAPIView
-from .views import StyleListAPIView
+from .views import StyleListCreateAPIView
 from .views import StyleRetrieveUpdateDestroyAPIView
-from .views import ProductListAPIView
+from .views import ProductListCreateAPIView
 from .views import ProductRetrieveUpdateDestroyAPIView
-from .views import CompanyListAPIView
+from .views import CompanyListCreateAPIView
 from .views import CompanyRetrieveUpdateDestroyAPIView
-from .views import BranchListAPIView
+from .views import BranchListCreateAPIView
+from .views import BranchForUserListAPIView
 from .views import BranchRetrieveUpdateDestroyAPIView
-from .views import StockListAPIView
+from .views import StockListCreateAPIView
 from .views import StockRetrieveUpdateDestroyAPIView
-from .views import UserListAPIView
+from .views import TransferListCreateAPIView
+from .views import UserListCreateAPIView
+from .views import UserRetrieveAPIView
 from .views import UserRetrieveUpdateDestroyAPIView
+from .views import AccessListCreateAPIView
 
 
 urlpatterns = [
-    path('color/', ColorListAPIView.as_view()),
+    path('color/', ColorListCreateAPIView.as_view()),
     path('color/<int:pk>/', ColorRetrieveUpdateDestroyAPIView.as_view()),
-    path('sex/', SexListAPIView.as_view()),
+    path('sex/', SexListCreateAPIView.as_view()),
     path('sex/<int:pk>/', SexRetrieveUpdateDestroyAPIView.as_view()),
-    path('size/', SizeListAPIView.as_view()),
+    path('size/', SizeListCreateAPIView.as_view()),
     path('size/<int:pk>/', SizeRetrieveUpdateDestroyAPIView.as_view()),
-    path('category/', CategoryListAPIView.as_view()),
+    path('category/', CategoryListCreateAPIView.as_view()),
     path('category/<int:pk>/', CategoryRetrieveUpdateDestroyAPIView.as_view()),
-    path('style/', StyleListAPIView.as_view()),
+    path('style/', StyleListCreateAPIView.as_view()),
     path('style/<int:pk>/', StyleRetrieveUpdateDestroyAPIView.as_view()),
-    path('product/', ProductListAPIView.as_view()),
+    path('product/', ProductListCreateAPIView.as_view()),
     path('product/<int:pk>/', ProductRetrieveUpdateDestroyAPIView.as_view()),
-    path('company/', CompanyListAPIView.as_view()),
+    path('company/', CompanyListCreateAPIView.as_view()),
     path('company/<int:pk>/', CompanyRetrieveUpdateDestroyAPIView.as_view()),
-    path('branch/', BranchListAPIView.as_view()),
+    path('branch/', BranchListCreateAPIView.as_view()),
     path('branch/<int:pk>/', BranchRetrieveUpdateDestroyAPIView.as_view()),
-    path('stock/', StockListAPIView.as_view()),
+    path('branch/username/', BranchForUserListAPIView.as_view()),
+    path('stock/', StockListCreateAPIView.as_view()),
     path('stock/<int:pk>/', StockRetrieveUpdateDestroyAPIView.as_view()),
-    path('user/', UserListAPIView.as_view()),
+    path('transfer/', TransferListCreateAPIView.as_view()),
+    path('user/', UserListCreateAPIView.as_view()),
     path('user/<int:pk>/', UserRetrieveUpdateDestroyAPIView.as_view()),
+    path('user/<str:username>/', UserRetrieveAPIView.as_view()),
+    path('access/', AccessListCreateAPIView.as_view()),
 ]

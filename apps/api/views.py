@@ -1,4 +1,8 @@
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListAPIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from apps.store.models import Color
 from apps.store.models import Sex
@@ -9,7 +13,10 @@ from apps.store.models import Product
 from apps.store.models import Company
 from apps.store.models import Branch
 from apps.store.models import Stock
+from apps.store.models import Transfer
+from apps.store.models import DetailTransfer
 from apps.users.models import User
+from apps.users.models import Access
 from .serializers import ColorSerializers
 from .serializers import SexSerializers
 from .serializers import SizeSerializers
@@ -19,11 +26,13 @@ from .serializers import ProductSerializers
 from .serializers import CompanySerializers
 from .serializers import BranchSerializers
 from .serializers import StockSerializers
+from .serializers import TransferSerializers
 from .serializers import UserSerializers
+from .serializers import AccessSerializers
 
 
 # Create your views here.
-class ColorListAPIView(ListCreateAPIView):
+class ColorListCreateAPIView(ListCreateAPIView):
     queryset = Color.objects.all()
     serializer_class = ColorSerializers
 
@@ -33,7 +42,7 @@ class ColorRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = ColorSerializers
 
 
-class SexListAPIView(ListCreateAPIView):
+class SexListCreateAPIView(ListCreateAPIView):
     queryset = Sex.objects.all()
     serializer_class = SexSerializers
 
@@ -43,7 +52,7 @@ class SexRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = SexSerializers
 
 
-class SizeListAPIView(ListCreateAPIView):
+class SizeListCreateAPIView(ListCreateAPIView):
     queryset = Size.objects.all()
     serializer_class = SizeSerializers
 
@@ -53,7 +62,7 @@ class SizeRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = SizeSerializers
 
 
-class CategoryListAPIView(ListCreateAPIView):
+class CategoryListCreateAPIView(ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializers
 
@@ -63,7 +72,7 @@ class CategoryRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = CategorySerializers
 
 
-class StyleListAPIView(ListCreateAPIView):
+class StyleListCreateAPIView(ListCreateAPIView):
     queryset = Style.objects.all()
     serializer_class = StyleSerializers
 
@@ -73,7 +82,7 @@ class StyleRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = StyleSerializers
 
 
-class ProductListAPIView(ListCreateAPIView):
+class ProductListCreateAPIView(ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializers
 
@@ -83,7 +92,7 @@ class ProductRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializers
 
 
-class CompanyListAPIView(ListCreateAPIView):
+class CompanyListCreateAPIView(ListCreateAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializers
 
@@ -93,9 +102,19 @@ class CompanyRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = CompanySerializers
 
 
-class BranchListAPIView(ListCreateAPIView):
+class BranchListCreateAPIView(ListCreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializers
+
+
+class BranchForUserListAPIView(ListAPIView):
+    queryset = Branch.objects.all()
+    serializer_class = BranchSerializers
+
+    def get_queryset(self):
+        user = self.request.user
+        branches = Branch.objects.filter(users=user)
+        return branches
 
 
 class BranchRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
@@ -103,7 +122,7 @@ class BranchRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = BranchSerializers
 
 
-class StockListAPIView(ListCreateAPIView):
+class StockListCreateAPIView(ListCreateAPIView):
     queryset = Stock.objects.all()
     serializer_class = StockSerializers
 
@@ -112,12 +131,49 @@ class StockRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Stock.objects.all()
     serializer_class = StockSerializers
 
+    def perform_update(self, serializer):
+        quantity = serializer._kwargs['data']['quantity']
+        stock = serializer.instance
+        stock.quantity += int(quantity)
+        stock.save()
 
-class UserListAPIView(ListCreateAPIView):
+
+class TransferListCreateAPIView(ListCreateAPIView):
+    queryset = Transfer.objects.all()
+    serializer_class = TransferSerializers
+
+    def perform_create(self, serializer):
+        from_pk = serializer._kwargs['data']['branch_from']
+        to_pk = serializer._kwargs['data']['branch_to']
+        description = serializer._kwargs['data']['description']
+        transfer = Transfer(branch_from=Branch.objects.get(pk=from_pk),
+                            branch_to=Branch.objects.get(pk=to_pk),
+                            description=description)
+        transfer.save()
+        for detail_data in serializer._kwargs['data']['details']:
+            detail = DetailTransfer(transfer=transfer)
+            detail.quantity = detail_data['quantity']
+            detail.product = Product.objects.get(pk=detail_data['product'])
+            detail.save()
+        serializer.instance = transfer
+
+
+class UserListCreateAPIView(ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializers
+
+
+class UserRetrieveAPIView(RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializers
+    lookup_field = 'username'
 
 
 class UserRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializers
+
+
+class AccessListCreateAPIView(ListCreateAPIView):
+    queryset = Access.objects.all()
+    serializer_class = AccessSerializers
