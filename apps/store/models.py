@@ -96,7 +96,7 @@ class Company(models.Model):
     website = models.CharField(max_length=64,
                                null=False,
                                blank=True)
-    logo = models.ImageField(upload_to='media')
+    logo = models.ImageField(upload_to='logo')
     description = models.CharField(max_length=128,
                                    null=False,
                                    blank=True)
@@ -140,10 +140,12 @@ class Branch(models.Model):
 class Stock(models.Model):
     product = models.ForeignKey(Product,
                                 on_delete=models.CASCADE,
-                                null=False)
+                                null=False,
+                                blank=False)
     branch = models.ForeignKey(Branch,
                                on_delete=models.CASCADE,
-                               null=False)
+                               null=False,
+                               blank=False)
     quantity = models.BigIntegerField(null=False,
                                       blank=False)
 
@@ -163,7 +165,11 @@ class Transfer(models.Model):
     description = models.CharField(max_length=128,
                                    null=False,
                                    blank=True)
-    created = models.DateField(auto_now_add=True)
+    status = models.CharField(max_length=1,
+                              blank=False,
+                              default='0')
+    created = models.DateTimeField(auto_now_add=True)
+    attended = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.branch_from.name
@@ -186,9 +192,11 @@ class DetailTransfer(models.Model):
 
 class Sale(models.Model):
     user = models.ForeignKey(User,
+                             related_name='user+',
                              on_delete=models.CASCADE,
                              null=False)
     client = models.ForeignKey(Client,
+                               related_name='client+',
                                on_delete=models.CASCADE,
                                null=False)
     sub_total = models.DecimalField(max_digits=18,
@@ -197,8 +205,8 @@ class Sale(models.Model):
                                          decimal_places=2)
     total = models.DecimalField(max_digits=18,
                                 decimal_places=2)
-    created = models.DateField(auto_now_add=True)
-    products = models.ManyToManyField('Product', through='DetailSale')
+    created = models.DateTimeField(auto_now_add=True)
+    details = models.ManyToManyField('Product', through='DetailSale')
 
     def __str__(self):
         return self.pk
@@ -206,10 +214,11 @@ class Sale(models.Model):
 
 class DetailSale(models.Model):
     sale = models.ForeignKey(Sale,
-                             models.CASCADE,
-                             null=False)
+                             on_delete=models.CASCADE,
+                             null=True,
+                             blank=False)
     product = models.ForeignKey(Product,
-                                models.CASCADE,
+                                on_delete=models.CASCADE,
                                 null=False)
     quantity = models.BigIntegerField(null=False,
                                       blank=False)

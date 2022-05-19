@@ -1,5 +1,4 @@
-from rest_framework.response import Response
-from rest_framework import status
+from django.http import Http404
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.generics import ListAPIView
@@ -15,7 +14,10 @@ from apps.store.models import Branch
 from apps.store.models import Stock
 from apps.store.models import Transfer
 from apps.store.models import DetailTransfer
+from apps.store.models import Sale
+from apps.store.models import DetailSale
 from apps.users.models import User
+from apps.users.models import Client
 from apps.users.models import Access
 from .serializers import ColorSerializers
 from .serializers import SexSerializers
@@ -27,7 +29,9 @@ from .serializers import CompanySerializers
 from .serializers import BranchSerializers
 from .serializers import StockSerializers
 from .serializers import TransferSerializers
+from .serializers import SaleSerializers
 from .serializers import UserSerializers
+from .serializers import ClientSerializers
 from .serializers import AccessSerializers
 
 
@@ -86,6 +90,12 @@ class ProductListCreateAPIView(ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializers
 
+    def perform_create(self, serializer):
+        serializer.save()
+        product = serializer.instance
+        product.codebar += str(10101010 + product.pk)
+        product.save()
+
 
 class ProductRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
@@ -128,14 +138,32 @@ class StockListCreateAPIView(ListCreateAPIView):
 
 
 class StockRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Stock.objects.all()
     serializer_class = StockSerializers
+    lookup_field = 'branch'
+
+    def get_queryset(self):
+        try:
+            branch = Branch.objects.get(pk=self.kwargs['branch'])
+            product = Product.objects.get(pk=self.kwargs['product'])
+        except (Product.DoesNotExist, Branch.DoesNotExist):
+            raise Http404
+        return Stock.objects.filter(branch=branch, product=product)
 
     def perform_update(self, serializer):
         quantity = serializer._kwargs['data']['quantity']
         stock = serializer.instance
         stock.quantity += int(quantity)
         stock.save()
+
+
+class StockListAPIView(ListAPIView):
+    queryset = Stock.objects.all()
+    serializer_class = StockSerializers
+    lookup_field = 'branch'
+
+    def get_queryset(self):
+        branch = Branch.objects.get(pk=self.kwargs[self.lookup_field])
+        return self.queryset.filter(branch=branch)
 
 
 class TransferListCreateAPIView(ListCreateAPIView):
@@ -158,6 +186,44 @@ class TransferListCreateAPIView(ListCreateAPIView):
         serializer.instance = transfer
 
 
+class TransferRetrieveAPIView(RetrieveAPIView):
+    queryset = Transfer.objects.all()
+    serializer_class = TransferSerializers
+
+
+class SaleListCreateAPIView(ListCreateAPIView):
+    queryset = Sale.objects.all()
+    serializer_class = SaleSerializers
+
+    def perform_create(self, serializer):
+        sub_total = serializer._kwargs['data']['sub_total']
+        exchanged_rate = serializer._kwargs['data']['exchanged_rate']
+        total = serializer._kwargs['data']['total']
+        user = User.objects.get(pk=serializer._kwargs['data']['user'])
+        client = Client.objects.get(pk=serializer._kwargs['data']['client'])
+
+        sale = Sale(sub_total=sub_total,
+                    exchanged_rate=exchanged_rate,
+                    total=total,
+                    user=user,
+                    client=client)
+        sale.save()
+
+        for detail_data in serializer._kwargs['data']['details']:
+            detail = DetailSale(sale=sale)
+            detail.product = Product.objects.get(pk=detail_data['product'])
+            detail.quantity = detail_data['quantity']
+            detail.price = detail_data['price']
+            detail.sub_total = detail_data['sub_total']
+            detail.save()
+        serializer.instance = sale
+
+
+class SaleRetrieveAPIView(RetrieveAPIView):
+    queryset = Sale.objects.all()
+    serializer_class = SaleSerializers
+
+
 class UserListCreateAPIView(ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializers
@@ -172,6 +238,17 @@ class UserRetrieveAPIView(RetrieveAPIView):
 class UserRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializers
+
+
+class ClientListCreateAPIView(ListCreateAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializers
+
+
+class ClientRetrieveAPIView(RetrieveAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializers
+    lookup_field = 'number_document'
 
 
 class AccessListCreateAPIView(ListCreateAPIView):

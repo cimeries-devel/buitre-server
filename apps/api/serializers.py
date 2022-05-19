@@ -11,8 +11,11 @@ from apps.store.models import Branch
 from apps.store.models import Stock
 from apps.store.models import Transfer
 from apps.store.models import DetailTransfer
+from apps.store.models import Sale
+from apps.store.models import DetailSale
 from apps.users.models import User
 from apps.users.models import Access
+from apps.users.models import Client
 
 
 class ColorSerializers(ModelSerializer):
@@ -74,7 +77,8 @@ class DetailTransferSerializers(ModelSerializer):
 
     class Meta:
         model = DetailTransfer
-        fields = ('transfer',
+        fields = ('id',
+                  'transfer',
                   'product',
                   'quantity',
                   'product_name')
@@ -89,7 +93,24 @@ class TransferSerializers(ModelSerializer):
                   'branch_from',
                   'branch_to',
                   'description',
-                  'details')
+                  'details',
+                  'status',
+                  'created',
+                  'attended')
+
+
+class DetailSaleSerializers(ModelSerializer):
+    class Meta:
+        model = DetailSale
+        fields = '__all__'
+
+
+class SaleSerializers(ModelSerializer):
+    details = DetailSaleSerializers(source='detailsale_set', many=True)
+
+    class Meta:
+        model = Sale
+        fields = '__all__'
 
 
 class UserSerializers(ModelSerializer):
@@ -112,4 +133,10 @@ class UserSerializers(ModelSerializer):
 class AccessSerializers(ModelSerializer):
     class Meta:
         model = Access
+        fields = '__all__'
+
+
+class ClientSerializers(ModelSerializer):
+    class Meta:
+        model = Client
         fields = '__all__'

@@ -17,11 +17,17 @@ from .views import BranchListCreateAPIView
 from .views import BranchForUserListAPIView
 from .views import BranchRetrieveUpdateDestroyAPIView
 from .views import StockListCreateAPIView
+from .views import StockListAPIView
 from .views import StockRetrieveUpdateDestroyAPIView
 from .views import TransferListCreateAPIView
+from .views import TransferRetrieveAPIView
+from .views import SaleListCreateAPIView
+from .views import SaleRetrieveAPIView
 from .views import UserListCreateAPIView
 from .views import UserRetrieveAPIView
 from .views import UserRetrieveUpdateDestroyAPIView
+from .views import ClientListCreateAPIView
+from .views import ClientRetrieveAPIView
 from .views import AccessListCreateAPIView
 
 
@@ -44,10 +50,16 @@ urlpatterns = [
     path('branch/<int:pk>/', BranchRetrieveUpdateDestroyAPIView.as_view()),
     path('branch/username/', BranchForUserListAPIView.as_view()),
     path('stock/', StockListCreateAPIView.as_view()),
-    path('stock/<int:pk>/', StockRetrieveUpdateDestroyAPIView.as_view()),
+    path('stock/<int:branch>/', StockListAPIView.as_view()),
+    path('stock/<int:branch>/<int:product>/', StockRetrieveUpdateDestroyAPIView.as_view()), # not use
     path('transfer/', TransferListCreateAPIView.as_view()),
+    path('transfer/<int:pk>/', TransferRetrieveAPIView.as_view()),
+    path('sale/', SaleListCreateAPIView.as_view()),
+    path('sale/<int:pk>/', SaleRetrieveAPIView.as_view()),
     path('user/', UserListCreateAPIView.as_view()),
     path('user/<int:pk>/', UserRetrieveUpdateDestroyAPIView.as_view()),
     path('user/<str:username>/', UserRetrieveAPIView.as_view()),
+    path('client/', ClientListCreateAPIView.as_view()),
+    path('client/<int:number_document>/', ClientRetrieveAPIView.as_view()),
     path('access/', AccessListCreateAPIView.as_view()),
 ]
